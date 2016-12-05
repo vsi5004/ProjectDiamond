@@ -1,10 +1,13 @@
 #node1.py
 #Author: Ivan Iakimenko
 
+from dbLog import log
 import socket, ssl, pprint, urllib, urllib2, pika
 from Crypto.Cipher import AES
 
 class node1(object):
+
+	logger = log()
 
 	def __init__(self):
 		pass
@@ -14,7 +17,7 @@ class node1(object):
 		ssl_sock = ssl.wrap_socket(s, ca_certs="server.crt",cert_reqs=ssl.CERT_REQUIRED)
 		ssl_sock.connect(('localhost', 10028))
 		ssl_sock.write(payload)
-		print('Node1 sent payload to Node2')
+		self.logger.addLog('Node1','Node1 sent payload to Node2')
 	
 	def getPayload(self):	
 		title='Blade Runner'
@@ -24,7 +27,7 @@ class node1(object):
 		response = urllib2.urlopen(url+value)
 		payload = response.read()
 
-		print ('Node1 recieved payload from OMDB')
+		self.logger.addLog ('Node1','Node1 recieved payload from OMDB')
 		self.sendPayload(payload)
 	
 
@@ -39,9 +42,11 @@ class node1(object):
 		def callback(ch, method, properties, body):
 			aesObj  = AES.new('This is a key123', AES.MODE_CBC, 'This is an IV456')
 			message = aesObj.decrypt(body)
-			print 'Node1 recieved payload from Node4'
+			self.logger.addLog('Node1','Node1 recieved payload from Node4')
 			print("Node1 received %r" % message)
+			self.logger.printAll('default')
+			self.logger.clearAll('default')
 
 		channel.basic_consume(callback,queue='node4Message',no_ack=True)
-		print 'Node1 listening'
+		self.logger.addLog('Node1','Node1 listening')
 		channel.start_consuming()

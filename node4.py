@@ -3,9 +3,11 @@
 
 import pika, Pyro4, zlib, sys
 from Crypto.Cipher import AES
-
+from dbLog import log
 
 class node4(object):
+
+	logger = log()
 
 	def __init__(self):
 		pass
@@ -14,9 +16,12 @@ class node4(object):
 	def listenForPayload(self):
 		@Pyro4.expose
 		class RemoteNode(object):
+			
+			logger = log()
+
 			@Pyro4.oneway
 			def recievePayload(self, payload):
-				print 'Node4 recieved message'
+				self.logger.addLog('Node4','Node4 recieved message')
 				#self.decompress(payload)
 				self.sendPayload(payload)
 
@@ -25,7 +30,7 @@ class node4(object):
 				connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
 				channel = connection.channel()
 				channel.queue_declare(queue='node4Message')
-				print("Node4 sent message to Node1")
+				self.logger.addLog('Node4',"Node4 sent message to Node1")
 				payload = self.encryptAES(payload)
 				channel.basic_publish(exchange='',routing_key='node4Message',body=payload)
 				connection.close()
@@ -33,7 +38,7 @@ class node4(object):
 			def decompress(self, fileCRC):
 				#fileCRC = open(location+'.json','rb')
 				payload = zlib.decompress(fileCRC)
-				print 'Node4 uncompressed message'
+				self.logger.addLog('Node4','Node4 uncompressed message')
 				self.sendPayload(payload)
 
 			#encrypt payload with AES
@@ -48,7 +53,7 @@ class node4(object):
 				payload += length*pad
 
 				ciphertext = obj.encrypt(payload)
-				print 'Node4 encrypted with AES'
+				self.logger.addLog('Node4','Node4 encrypted with AES')
 				return ciphertext
 	
 
@@ -57,6 +62,6 @@ class node4(object):
 		uri = daemon.register(RemoteNode)   # register the greeting maker as a Pyro object
 		ns.register("node4", uri)
 
-		print 'Node4 listening'
+		self.logger.addLog('Node4','Node4 listening')
 		daemon.requestLoop()                   # start the event loop of the server to wait for calls
 

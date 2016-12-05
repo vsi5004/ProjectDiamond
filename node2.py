@@ -2,9 +2,11 @@
 #Author: Ivan Iakimenko
 
 import socket, ssl, hashlib, pysftp, time
+from dbLog import log
 
 class node2(object):
 	
+	logger = log()
 	run = True
 
 	def __init__(self):
@@ -13,13 +15,13 @@ class node2(object):
 	def listenForPayload(self):
 		bindsocket = socket.socket()
 		bindsocket.bind(('', 10028))
-		print 'Node2 listening'
+		self.logger.addLog('Node2','Node2 listening')
 		bindsocket.listen(5)
 
 		run=True
 
 		def do_something(connstream, data):
-			print('Node2 recieved payload from Node1')
+			self.logger.addLog('Node2','Node2 recieved payload from Node1')
 			self.sendPayload(data)
 			self.run=False
 			return False
@@ -46,12 +48,12 @@ class node2(object):
 		data = self.calculateChecksum(data)
 		file.write(data)
 		file.close()
-		print('Node2 stored payload in file')
+		self.logger.addLog('Node2','Node2 stored payload in file')
 		self.sftpPut()
 
 	def calculateChecksum(self, data):
 		checksum = hashlib.md5(data.encode()).hexdigest()
-		print('Node2 calculated checksum')
+		self.logger.addLog('Node2','Node2 calculated checksum')
 		return data +'\n'+ checksum
 
 	def sftpPut(self):
@@ -65,8 +67,8 @@ class node2(object):
 				try:
 					with sftp.cd('/home/ftpuser'):
 						sftp.put('/home/IvanIakimenko/ProjectDiamond/IvanIakimenko.json')
-						print 'Node2 sftp file into Node3 directory'
+						self.logger.addLog('Node2','Node2 sftp file into Node3 directory')
 				except:
-					print('file issue')
+					self.logger.addLog('Node2','file issue')
 		except:
-			print 'connection issue'
+			self.logger.addLog('Node2','connection issue')
