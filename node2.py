@@ -66,7 +66,7 @@ class node2(object):
 			with pysftp.Connection(**cinfo) as sftp:
 				try:
 					with sftp.cd('/home/ftpuser'):
-						sftp.put('/home/IvanIakimenko/ProjectDiamond/IvanIakimenko.json')
+						sftp.put('/home/ftpuser/IvanIakimenko.json')
 						self.logger.addLog('Node2','Node2 sftp file into Node3 directory')
 				except:
 					self.logger.addLog('Node2','file issue')
